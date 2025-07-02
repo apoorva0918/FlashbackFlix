@@ -11,25 +11,23 @@ export const getNowPlayingMovies = async (req, res) => {
     const { data } = await axios.get(
       "https://api.themoviedb.org/3/discover/movie",
       {
-        headers: {
-          Authorization: `Bearer ${process.env.TMDB_BEARER_TOKEN}`,
-        },
         params: {
+          api_key: process.env.TMDB_API_KEY,
           sort_by: "popularity.desc",
           "primary_release_date.lte": "1985-12-31", // 1985 tak ki movies
           with_genres: "10749", // romance
           with_original_language: "hi", // Hindi
           page: 1,
         },
-        httpsAgent: agent,
+        // httpsAgent: agent,
         timeout: 5000,
       }
     );
 
     res.json({ success: true, movies: data.results });
   } catch (error) {
-    console.error("ERROR:", error.message);
-    res.status(500).json({ success: false, message: error.message });
+      console.error("Add Show ERROR:", error); // <-- Yeh line likho
+      res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -43,23 +41,25 @@ export const addShow = async (req, res) => {
     if (!movie) {
       const agent = new https.Agent({ keepAlive: false });
 
-      const [movieDetailsResponse, movieCreditsresponse] = await Promise.all([
+      const movieDetailsResponse = await 
         axios.get(`https://api.themoviedb.org/3/movie/${movieId}`, {
-          headers: {
-            Authorization: `Bearer ${process.env.TMDB_BEARER_TOKEN}`,
+          params: {
+            api_key: process.env.TMDB_API_KEY
           },
-          httpsAgent: agent,
+          // httpsAgent: agent,
           timeout: 5000,
-        }),
-        axios.get(`https://api.themoviedb.org/3/movie/${movieId}/credits`, {
-          headers: {
-            Authorization: `Bearer ${process.env.TMDB_BEARER_TOKEN}`,
-          },
-          httpsAgent: agent,
-          timeout: 5000,
-        }),
-      ]);
+        })
 
+        const movieCreditsresponse= await 
+          axios.get(`https://api.themoviedb.org/3/movie/${movieId}/credits`, {
+          params: {
+            api_key: process.env.TMDB_API_KEY,
+          },
+          // httpsAgent: agent,
+          timeout: 5000,
+        });
+
+        
       const movieApiData = movieDetailsResponse.data;
       const movieCreditsdata = movieCreditsresponse.data;
 
@@ -101,8 +101,8 @@ export const addShow = async (req, res) => {
 
     res.json({ success: true, message: "Show added successfully." });
   } catch (error) {
-    console.error("ERROR:", error.message);
-    res.status(500).json({ success: false, message: error.message });
+      console.error("Add Show ERROR:", error); // <-- Yeh line likho
+      res.status(500).json({ success: false, message: error.message });
   }
 }
 
@@ -113,8 +113,8 @@ export const getShows= async(req,res) => {
         const uniqueShows= new Set(shows.map(show=> show.movie))
         res.json({success:true, shows:Array.from(uniqueShows)})
     } catch(error){
-        console.error(error);
-        res.json({success: false, message:error.message});
+        console.error("Add Show ERROR:", error); // <-- Yeh line likho
+        res.status(500).json({ success: false, message: error.message });
     }
 }
 
@@ -135,7 +135,7 @@ export const getShow= async(req,res) =>{
         })
         res.json({success:true, movie, dateTime})
     } catch (error){
-        console.error(error);
-        res.json({success:false, message: error.message});
+        console.error("Add Show ERROR:", error); // <-- Yeh line likho
+        res.status(500).json({ success: false, message: error.message });
     }
 }
